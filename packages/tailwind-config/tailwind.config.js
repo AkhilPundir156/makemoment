@@ -2,6 +2,7 @@
 export default {
     content: [
       "./**/*.{js,ts,jsx,tsx}",
+      "./ui/**/*.{js,ts,jsx,tsx}",
     ],
     darkMode: 'class',
     theme: {
