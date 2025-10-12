@@ -2,7 +2,8 @@
   "extends": "../../packages/typescript-config/base.json",
   "compilerOptions": {
     "paths": {
-      "@makemymoment/typescript-config/*": ["../../packages/typescript-config/*"]
+      "@makemymoment/typescript-config/*": ["../../packages/typescript-config/*"],
+      "@makemymoment/types": ["../../packages/types"],
     },
     "composite": true,
     "declaration": true,
@@ -13,5 +14,19 @@
     "module": "esnext",
     "moduleResolution": "Node"
   },
-  "include": ["src"]
+  "include": [
+    "**/*.js",
+    "**/*.ts",
+    "**/*.tsx",
+    "next-env.d.ts",
+    "next.config.ts",
+    ".next/types/**/*.ts",
+    "index.d.ts",
+  ],
+  "exclude": [
+    "node_modules"
+  ],
+  "references": [
+    { "path": "../types/"} 
+  ]
 }
