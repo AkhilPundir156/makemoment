@@ -10,7 +10,7 @@
  * - Upload each chunk using the presigned URL
  * - Complete or abort the upload
  */
-import { MultipartUploaderOptions, UploadedPart} from "@makemymoment/types"
+import { MultipartUploaderOptions, UploadedPart } from "@makemymoment/types";
 
 export class MultipartUploader {
     private uploadId: string | null = null;
@@ -19,111 +19,116 @@ export class MultipartUploader {
 
     private filename: string;
     private contentType?: string;
+    private backendUrl: string;
 
-    constructor(options: MultipartUploaderOptions) {
+    constructor(options: MultipartUploaderOptions & { backendUrl: string }) {
         this.filename = options.filename;
         this.contentType = options.contentType;
+        this.backendUrl = options.backendUrl; // e.g. https://api.makemymoment.com
     }
 
     /**
-     * Initiates a new multipart upload session.
-     * Returns the uploadId which will be used for all subsequent parts.
+     * Step 1: Start multipart upload session
+     * Calls backend `/api/start-upload` to get uploadId.
      */
     async createMultipartUploader(): Promise<string> {
-        // TODO: call backend API (e.g. /api/start-upload)
-        // Example:
-        // const res = await fetch('/api/start-upload', { method: 'POST', body: JSON.stringify({ filename, contentType }) })
-        // const data = await res.json();
-        // this.uploadId = data.uploadId;
+        const res = await fetch(`${this.backendUrl}/api/start-upload`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                filename: this.filename,
+                contentType: this.contentType,
+            }),
+        });
 
-        this.uploadId = "UPLOAD_ID_PLACEHOLDER";
-        return this.uploadId;
+        const data = await res.json();
+        this.uploadId = data.uploadId;
+
+        return this.uploadId!;
     }
 
     /**
-     * Retrieves a presigned URL for uploading a specific part.
-     * The URL is used to directly PUT the chunk to the cloud.
+     * Step 2: Get presigned URL for a specific part
      */
     async getPartSignedUrl(partNumber: number): Promise<string> {
-        if (!this.uploadId)
-            throw new Error("UploadId not initialized. Call createMultipartUploader first.");
+        if (!this.uploadId) throw new Error("UploadId not initialized.");
 
-        // TODO: call backend API (e.g. /api/part-url?uploadId=&partNumber=)
-        // Example:
-        // const res = await fetch(`/api/part-url?uploadId=${this.uploadId}&filename=${this.filename}&partNumber=${partNumber}`);
-        // const data = await res.json();
-        // return data.url;
+        const res = await fetch(
+            `${this.backendUrl}/api/part-url?uploadId=${this.uploadId}&filename=${this.filename}&partNumber=${partNumber}`
+        );
 
-        return "SIGNED_URL_PLACEHOLDER";
+        const data = await res.json();
+        return data.url;
     }
 
     /**
-     * Uploads a chunk to the presigned URL for the current part.
-     * Saves ETag for completion.
+     * Step 3: Upload a single chunk (100MB)
+     * Directly PUT to the presigned URL from R2/S3.
      */
     async uploadPart(chunk: Blob | Buffer): Promise<void> {
         if (!this.uploadId) throw new Error("UploadId not initialized.");
 
         const url = await this.getPartSignedUrl(this.currentPartNumber);
 
-        // TODO: perform PUT request to upload chunk
-        // const res = await fetch(url, { method: 'PUT', body: chunk });
-        // const eTag = res.headers.get('ETag');
-        const eTag = `"FAKE-ETAG-${this.currentPartNumber}"`;
+        const res = await fetch(url, {
+            method: "PUT",
+            body: chunk,
+        });
+
+        if (!res.ok) throw new Error(`Upload failed for part ${this.currentPartNumber}`);
+
+        const eTag = res.headers.get("ETag") || `"part-${this.currentPartNumber}"`;
 
         this.parts.push({ ETag: eTag, PartNumber: this.currentPartNumber });
         this.currentPartNumber++;
 
-        // Optional: store state in IndexedDB for resumability
+        // TODO: Store parts in IndexedDB
     }
 
     /**
-     * Completes the multipart upload by merging all uploaded parts.
-     * Requires uploadId and all part numbers + ETags.
+     * Step 4: Complete the multipart upload
      */
     async completeMultipartUpload(): Promise<void> {
         if (!this.uploadId) throw new Error("No uploadId present.");
         if (this.parts.length === 0) throw new Error("No parts uploaded.");
 
-        // TODO: call backend API (e.g. /api/complete-upload)
-        // Example:
-        // await fetch('/api/complete-upload', {
-        //   method: 'POST',
-        //   body: JSON.stringify({
-        //     uploadId: this.uploadId,
-        //     filename: this.filename,
-        //     parts: this.parts,
-        //   }),
-        // });
+        await fetch(`${this.backendUrl}/api/complete-upload`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                uploadId: this.uploadId,
+                filename: this.filename,
+                parts: this.parts,
+            }),
+        });
 
-        // Cleanup state
         this.uploadId = null;
         this.parts = [];
         this.currentPartNumber = 1;
     }
 
     /**
-     * Aborts the multipart upload.
-     * Should be called when upload is canceled or fails irrecoverably.
+     * Step 5: Abort the multipart upload (optional)
      */
     async abortMultipartUpload(): Promise<void> {
         if (!this.uploadId) throw new Error("No uploadId to abort.");
 
-        // TODO: call backend API (e.g. /api/abort-upload)
-        // Example:
-        // await fetch('/api/abort-upload', {
-        //   method: 'POST',
-        //   body: JSON.stringify({ uploadId: this.uploadId, filename: this.filename }),
-        // });
+        await fetch(`${this.backendUrl}/api/abort-upload`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                uploadId: this.uploadId,
+                filename: this.filename,
+            }),
+        });
 
-        // Cleanup
         this.uploadId = null;
         this.parts = [];
         this.currentPartNumber = 1;
     }
 
     /**
-     * Utility: returns current internal state (for debugging or resume support).
+     * Returns current state (useful for resumable uploads)
      */
     getState() {
         return {
@@ -131,7 +136,31 @@ export class MultipartUploader {
             currentPartNumber: this.currentPartNumber,
             uploadedParts: this.parts,
             filename: this.filename,
-            contenType: this.contentType,
+            contentType: this.contentType,
         };
     }
 }
+
+/**
+ * Usage in the Any package
+
+    import { MultipartUploader } from "@makemymoment/utils/cloud/MultipartUploader";
+
+    const uploader = new MultipartUploader({
+      filename: file.name,
+      contentType: file.type,
+      backendUrl: "https://our-backend-url,
+    });
+
+    const uploadId = await uploader.createMultipartUploader();
+
+    for (let i = 0; i < totalChunks; i++) {
+      const start = i * chunkSize;
+      const end = Math.min(start + chunkSize, file.size);
+      const chunk = file.slice(start, end);
+
+      await uploader.uploadPart(chunk);
+    }
+
+    await uploader.completeMultipartUpload();
+ */
