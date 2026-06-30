@@ -1,9 +1,10 @@
+
 {
   "extends": "@makemymoment/typescript-config/react-library.json",
   "include": ["."],
   "compilerOptions": {
     "paths": {
-      "@makemymoment/tailwind-config/*" : ["../../packages/tailwind-config/*"]
+      "@/*": ["./src/*"]
     }
   },
   "exclude": ["dist", "build", "node_modules"]
