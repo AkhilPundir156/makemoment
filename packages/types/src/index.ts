@@ -23,3 +23,13 @@ export interface nextUser {
     email: string;
     image?: string;
 }
+
+export type UploadedPart = {
+    ETag: string;
+    PartNumber: number;
+};
+
+export interface MultipartUploaderOptions {
+    filename: string;
+    contentType?: string;
+}

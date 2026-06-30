@@ -31,7 +31,7 @@ export const authOptions = {
                 if (!existingUser) {
                     await UserModel.create({
                         name: user.name,
-                        emailId: user.email || "A@gmail.com",
+                        emailId: user.email,
                         image: user.image,
                         createdAt: new Date(),
                     });

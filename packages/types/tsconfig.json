@@ -8,6 +8,7 @@
       "declaration": true,
       "declarationMap": true,
       "emitDeclarationOnly": true,
+      "noEmit": false,
       "outDir": "dist",
       "rootDir": "src",
       "module": "esnext",
