@@ -65,7 +65,7 @@ export class MultipartUploader {
      * Step 3: Upload a single chunk (100MB)
      * Directly PUT to the presigned URL from R2/S3.
      */
-    async uploadPart(chunk: Blob | Buffer): Promise<void> {
+    async uploadPart(chunk: Blob): Promise<void> {
         if (!this.uploadId) throw new Error("UploadId not initialized.");
 
         const url = await this.getPartSignedUrl(this.currentPartNumber);
