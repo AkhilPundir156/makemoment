@@ -1,7 +1,9 @@
+import { SiteHeader } from "./components/site-header";
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function FrontendLayout({ children }: { children: React.ReactNode }) {
     return (
-        <div>
+        <div className="min-h-screen bg-background">
+            <SiteHeader />
             {children}
         </div>
     );

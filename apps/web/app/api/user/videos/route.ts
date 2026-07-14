@@ -1,13 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 
-import { authOptions } from "@web/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@web/lib/auth";
 import connectToDatabase from "@web/db/connectDB";
 import { VideoModel } from "@web/db/modals";
 
-export async function GET(req: NextRequest) {
+export async function GET() {
     try {
-        //@ts-ignore
         const session = await getServerSession(authOptions);
 
         if (!session || !session.user?.email) {

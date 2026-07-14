@@ -5,8 +5,11 @@ import getEnvVar from "@makemymoment/utils/config";
 
 import s3Client from "@web/lib/s3Client";
 
+function getErrorMessage(error: unknown) {
+    return error instanceof Error ? error.message : "Unable to start upload";
+}
+
 export async function POST(req: Request) {
-    console.log("request Recieved", req);
     try {
         const { filename, contentType } = await req.json();
 
@@ -22,8 +25,8 @@ export async function POST(req: Request) {
             uploadId: response.UploadId,
             key: response.Key,
         });
-    } catch (error: any) {
+    } catch (error) {
         console.error("Error starting upload:", error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: getErrorMessage(error) }, { status: 500 });
     }
 }

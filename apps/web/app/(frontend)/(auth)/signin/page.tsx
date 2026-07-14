@@ -1,81 +1,82 @@
 "use client";
-import { useSession, signIn, signOut } from "next-auth/react";
-import { Button } from "@makemymoment/ui/components/ui/button"
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@makemymoment/ui/components/ui/card"
 
-export default function Component() {
-    const { data: session } = useSession();
-    
-    if (session) {
+import { signIn, signOut, useSession } from "next-auth/react";
+import { Button } from "@makemymoment/ui/components/ui/button";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from "@makemymoment/ui/components/ui/card";
+import { Chrome, LogOut } from "lucide-react";
+
+export default function SignInPage() {
+    const { data: session, status } = useSession();
+
+    if (status === "loading") {
         return (
-            <div>
-                Signed in as {session?.user?.email} <br />
-                <button onClick={() => signOut()}>Sign out</button>
-            </div>
+            <main className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4">
+                <Card className="w-full max-w-md">
+                    <CardHeader>
+                        <CardTitle>Checking session</CardTitle>
+                        <CardDescription>
+                            One moment while Make My Moment loads your account.
+                        </CardDescription>
+                    </CardHeader>
+                </Card>
+            </main>
         );
     }
+
+    if (session) {
+        return (
+            <main className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4">
+                <Card className="w-full max-w-md">
+                    <CardHeader>
+                        <CardTitle>Signed in</CardTitle>
+                        <CardDescription>
+                            {session.user.email} is ready to record and share moments.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardFooter>
+                        <Button
+                            className="w-full"
+                            variant="outline"
+                            onClick={() => signOut({ callbackUrl: "/" })}
+                        >
+                            <LogOut className="size-4" />
+                            Sign out
+                        </Button>
+                    </CardFooter>
+                </Card>
+            </main>
+        );
+    }
+
     return (
-    <Card className="w-full max-w-sm">
-      <CardHeader>
-        <CardTitle>Login to your account</CardTitle>
-        <CardDescription>
-          Enter your email below to login to your account
-        </CardDescription>
-        <CardAction>
-          <Button variant="link">Sign Up</Button>
-        </CardAction>
-      </CardHeader>
-      <CardContent>
-        <form>
-          <div className="flex flex-col gap-6">
-            <div className="grid gap-2">
-              <label htmlFor="email">Email</label>
-              <input
-                id="email"
-                type="email"
-                placeholder="m@example.com"
-                required
-              />
-            </div>
-            <div className="grid gap-2">
-              <div className="flex items-center">
-                <label htmlFor="password">Password</label>
-                <a
-                  href="#"
-                  className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
-                >
-                  Forgot your password?
-                </a>
-              </div>
-              <input id="password" type="password" required />
-            </div>
-          </div>
-        </form>
-      </CardContent>
-      <CardFooter className="flex-col gap-2">
-        <Button type="submit" className="w-full">
-          Login
-        </Button>
-        <Button variant="outline" className="w-full">
-          Login with Google
-        </Button>
-      </CardFooter>
-    </Card>
-  )
-}
-
-
-// import { Input } from "@/components/ui/input"
-// import { Label } from "@/components/ui/label"
-
-export function CardDemo() {
-  
+        <main className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4">
+            <Card className="w-full max-w-md">
+                <CardHeader>
+                    <CardTitle>Sign in to Make My Moment</CardTitle>
+                    <CardDescription>
+                        Use Google to access recording uploads, dashboard metadata, and share links.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="rounded-md border border-border bg-muted p-4 text-sm text-muted-foreground">
+                        The app only requests the account details needed to create your workspace
+                        profile.
+                    </div>
+                </CardContent>
+                <CardFooter>
+                    <Button className="w-full" onClick={() => signIn("google")}>
+                        <Chrome className="size-4" />
+                        Continue with Google
+                    </Button>
+                </CardFooter>
+            </Card>
+        </main>
+    );
 }

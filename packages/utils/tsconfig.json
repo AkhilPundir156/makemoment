@@ -1,32 +1,21 @@
 {
-  "extends": "../../packages/typescript-config/base.json",
-  "compilerOptions": {
-    "paths": {
-      "@makemymoment/typescript-config/*": ["../../packages/typescript-config/*"],
-      "@makemymoment/types": ["../../packages/types"],
+    "extends": "../../packages/typescript-config/base.json",
+    "compilerOptions": {
+        "paths": {
+            "@makemymoment/typescript-config/*": ["../../packages/typescript-config/*"],
+            "@makemymoment/types": ["../../packages/types"]
+        },
+        "composite": true,
+        "declaration": true,
+        "declarationMap": true,
+        "emitDeclarationOnly": true,
+        "noEmit": false,
+        "outDir": "dist",
+        "rootDir": "src",
+        "module": "esnext",
+        "moduleResolution": "Node"
     },
-    "composite": true,
-    "declaration": true,
-    "declarationMap": true,
-    "emitDeclarationOnly": true,
-    "outDir": "dist",
-    "rootDir": "src",
-    "module": "esnext",
-    "moduleResolution": "Node"
-  },
-  "include": [
-    "**/*.js",
-    "**/*.ts",
-    "**/*.tsx",
-    "next-env.d.ts",
-    "next.config.ts",
-    ".next/types/**/*.ts",
-    "index.d.ts",
-  ],
-  "exclude": [
-    "node_modules"
-  ],
-  "references": [
-    { "path": "../types/"} 
-  ]
+    "include": ["src"],
+    "exclude": ["node_modules"],
+    "references": [{ "path": "../types/" }]
 }

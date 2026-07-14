@@ -1,1 +1,1 @@
-{"root":["./src/card.tsx","./src/gradient.tsx"],"version":"5.9.2"}
+{"root":["./vite.config.ts","./src/card.tsx","./src/gradient.tsx","./src/components/ui/button.tsx","./src/components/ui/card.tsx","./src/components/ui/navigation-menu.tsx","./src/lib/utils.ts"],"version":"5.9.2"}

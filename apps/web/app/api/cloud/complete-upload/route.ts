@@ -1,13 +1,26 @@
-import { NextResponse } from "next/server";
 import { CompleteMultipartUploadCommand } from "@aws-sdk/client-s3";
+import { NextResponse } from "next/server";
 
 import getEnvVar from "@makemymoment/utils/config";
 
 import s3Client from "@web/lib/s3Client";
 
+type CompletedPart = {
+    ETag: string;
+    PartNumber: number;
+};
+
+function getErrorMessage(error: unknown) {
+    return error instanceof Error ? error.message : "Unable to complete upload";
+}
+
 export async function POST(req: Request) {
     try {
-        const { uploadId, filename, parts } = await req.json();
+        const {
+            uploadId,
+            filename,
+            parts,
+        }: { uploadId?: string; filename?: string; parts?: CompletedPart[] } = await req.json();
 
         if (!uploadId || !filename || !parts?.length) {
             return NextResponse.json(
@@ -21,9 +34,9 @@ export async function POST(req: Request) {
             Key: filename,
             UploadId: uploadId,
             MultipartUpload: {
-                Parts: parts.map((p: any) => ({
-                    ETag: p.ETag,
-                    PartNumber: p.PartNumber,
+                Parts: parts.map((part) => ({
+                    ETag: part.ETag,
+                    PartNumber: part.PartNumber,
                 })),
             },
         });
@@ -36,8 +49,8 @@ export async function POST(req: Request) {
             key: response.Key,
             bucket: response.Bucket,
         });
-    } catch (error: any) {
+    } catch (error) {
         console.error("Error completing upload:", error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: getErrorMessage(error) }, { status: 500 });
     }
 }

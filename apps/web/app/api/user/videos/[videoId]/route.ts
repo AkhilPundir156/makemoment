@@ -1,13 +1,17 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 
 import isValidDbId from "@makemymoment/utils/validmongo";
 
-import { authOptions } from "@web/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@web/lib/auth";
 import connectToDatabase from "@web/db/connectDB";
 import { VideoModel } from "@web/db/modals";
 
-export async function GET(req: NextRequest, { params }: { params: any }) {
+type VideoRouteContext = {
+    params: Promise<{ videoId: string }>;
+};
+
+export async function GET(_req: Request, { params }: VideoRouteContext) {
     try {
         const videoId = (await params).videoId;
 
@@ -15,7 +19,6 @@ export async function GET(req: NextRequest, { params }: { params: any }) {
             return NextResponse.json({ message: "Invalid Video Id" }, { status: 401 });
         }
 
-        //@ts-ignore
         const session = await getServerSession(authOptions);
 
         if (!session || !session.user?.email) {
@@ -42,6 +45,26 @@ export async function GET(req: NextRequest, { params }: { params: any }) {
     }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: any }) {
-    // Implement logic
+export async function DELETE(_req: Request, { params }: VideoRouteContext) {
+    try {
+        const videoId = (await params).videoId;
+
+        if (!isValidDbId(videoId)) {
+            return NextResponse.json({ message: "Invalid Video Id" }, { status: 400 });
+        }
+
+        const session = await getServerSession(authOptions);
+
+        if (!session || !session.user?.email) {
+            return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+        }
+
+        await connectToDatabase._getInstance();
+        await VideoModel.findByIdAndDelete(videoId);
+
+        return NextResponse.json({ success: true }, { status: 200 });
+    } catch (error) {
+        console.error("Error deleting video:", error);
+        return NextResponse.json({ message: "Internal server error" }, { status: 500 });
+    }
 }

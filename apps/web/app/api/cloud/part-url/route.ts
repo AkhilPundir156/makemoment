@@ -6,6 +6,10 @@ import getEnvVar from "@makemymoment/utils/config";
 
 import s3Client from "@web/lib/s3Client";
 
+function getErrorMessage(error: unknown) {
+    return error instanceof Error ? error.message : "Unable to create part URL";
+}
+
 export async function GET(req: Request) {
     try {
         const { searchParams } = new URL(req.url);
@@ -27,8 +31,8 @@ export async function GET(req: Request) {
         const url = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
 
         return NextResponse.json({ url });
-    } catch (error: any) {
+    } catch (error) {
         console.error("Error generating part URL:", error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: getErrorMessage(error) }, { status: 500 });
     }
 }

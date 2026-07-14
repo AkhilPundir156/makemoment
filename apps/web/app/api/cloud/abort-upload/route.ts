@@ -4,6 +4,10 @@ import { AbortMultipartUploadCommand } from "@aws-sdk/client-s3";
 import getEnvVar from "@makemymoment/utils/config";
 import s3Client from "@web/lib/s3Client";
 
+function getErrorMessage(error: unknown) {
+    return error instanceof Error ? error.message : "Unable to abort upload";
+}
+
 export async function POST(req: Request) {
     try {
         const { uploadId, filename } = await req.json();
@@ -21,8 +25,8 @@ export async function POST(req: Request) {
         await s3Client.send(command);
 
         return NextResponse.json({ message: "Upload aborted successfully" });
-    } catch (error: any) {
+    } catch (error) {
         console.error("Error aborting upload:", error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: getErrorMessage(error) }, { status: 500 });
     }
 }
