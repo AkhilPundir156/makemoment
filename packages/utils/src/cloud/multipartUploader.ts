@@ -1,3 +1,1 @@
-export const uploadSingleFile = () => {
-    
-}
+export const uploadSingleFile = () => {};
